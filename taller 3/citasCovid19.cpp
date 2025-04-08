@@ -32,14 +32,14 @@ void Minheapify(vaccine Q[], int i, int heapSize){
     l = Left(i);
     r = Right(i);
 
-    if ((l <= heapSize) && ((Q[l].priority < Q[i].priority) || 
-            ((Q[l].priority == Q[i].priority) && (Q[l].order < Q[i].order))))
+    if (((l <= heapSize) && (Q[l].priority < Q[i].priority)) || 
+            ((Q[l].priority == Q[i].priority) && (Q[l].order < Q[i].order)))
             least = l;
     else
         least = i;
 
-    if ((r <= heapSize) && ((Q[r].priority < Q[least].priority) ||
-            ((Q[r].priority == Q[least].priority) && (Q[r].order < Q[least].order)))) // Compara simultaneamente el orden de ingreso a la cola
+    if (((r <= heapSize) && (Q[r].priority < Q[least].priority)) ||
+            ((Q[r].priority == Q[least].priority) && (Q[r].order < Q[least].order))) // Compara simultaneamente el orden de ingreso a la cola
         least = r;
 
     if (least != i)
