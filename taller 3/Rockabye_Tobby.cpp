@@ -40,13 +40,13 @@ void MinHeapify(medicamento Q[], int i, int heapSize) {
     r = Right(i);
 
     if ((l <= heapSize) && ((Q[l].tiempo < Q[i].tiempo) ||
-		((Q[l].tiempo == Q[i].tiempo) && (Q[l].prioridad < Q[i].prioridad ))))
+        ((Q[l].tiempo == Q[i].tiempo) && (Q[l].prioridad < Q[i].prioridad ))))
         least = l;
     else 
         least = i;
         
     if((r <= heapSize) && ((Q[r].tiempo < Q[least].tiempo) ||
-		((Q[r].tiempo == Q[least].tiempo) && (Q[r].prioridad < Q[least].prioridad))))       
+        ((Q[r].tiempo == Q[least].tiempo) && (Q[r].prioridad < Q[least].prioridad))))       
         least = r;
         
     if(least != i){
@@ -94,7 +94,7 @@ void MinPQ_DecreaseKey(medicamento Q[], int i, medicamento key) {
     else{
         Q[i] = key;
         while((i > 1) && ((Q[Parent(i)].tiempo > Q[i].tiempo) ||
-			 ((Q[Parent(i)].tiempo == Q[i].tiempo) && Q[Parent(i)].prioridad > Q[i].prioridad))){ 
+             ((Q[Parent(i)].tiempo == Q[i].tiempo) && Q[Parent(i)].prioridad > Q[i].prioridad))){ 
             
             temp = Q[i];
             Q[i] = Q[Parent(i)];
@@ -119,7 +119,7 @@ int main(){
     
     scanf("%d", &t);
     for(index = 1; index <= t; index++){
-    	heapSize = 0;
+        heapSize = 0;
         scanf("%d %d", &n, &k);
         for(j = 1; j <= n; j++){
             scanf("%s %d", dato.name, &dato.frecuencia);
@@ -133,7 +133,7 @@ int main(){
             minimo = MinPQ_Extract(ListaDatos, &heapSize);
             printf("%d %s\n", minimo.tiempo, minimo.name);
             minimo.tiempo += minimo.frecuencia; // Sumar correctamente el tiempo
-			MinPQ_Insert(ListaDatos, minimo, &heapSize);  
+            MinPQ_Insert(ListaDatos, minimo, &heapSize);  
         }
       
     }

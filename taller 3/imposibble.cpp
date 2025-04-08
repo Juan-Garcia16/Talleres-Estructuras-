@@ -3,8 +3,7 @@
 #include <math.h>
 #define myPositiveInfinite 2147483647
 #define myNegativeInfinite -2147483647
-#define MAXN 100
-//#define MAXN 1000000000
+#define MAXN 1000000
 
 int Parent(int i){
     return i/2;
@@ -87,7 +86,7 @@ void MinPQ_Insert(int Q[], int key, int *heapSize){
 int main(){
     int n, IDnumber[MAXN + 1], element, heapSize = 0, reference, min, found = 0;
     
-    while(scanf("%d", &n) && n != EOF)
+    while(scanf("%d", &n) != EOF)
     {
         for (int i = 1; i < n; i++)
         {
@@ -104,10 +103,7 @@ int main(){
             if (min == reference)
                 reference++;
             else
-            {
                 found = 1;
-                break;
-            }
         }
 
         if (found == 0)
@@ -115,16 +111,7 @@ int main(){
         else
             printf("%d\n", reference);
         
-        while (heapSize > 0)
-        {
-            MinPQ_Extract(IDnumber, &heapSize);
-        }
-        
         found = 0;
-        reference = 0;
     }
     return 0;
 }
-
-
-
