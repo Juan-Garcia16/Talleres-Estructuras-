@@ -65,6 +65,7 @@ int MCD(int a, int b) {
     return a;
 }
 
+
 int main(){
     struct node *tail, *sheet, *student, *deleteStudent;
     int n, t, mcd;
@@ -108,6 +109,7 @@ int main(){
         printf("%d\n", tail->key);
     
         free(tail);
+        
     }
 
     return 0;
