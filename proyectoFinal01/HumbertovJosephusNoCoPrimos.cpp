@@ -108,7 +108,6 @@ int main(){
         printf("%d\n", tail->key);
     
         free(tail);
-        
     }
 
     return 0;
