@@ -1,4 +1,4 @@
- #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -337,12 +337,8 @@ struct nodeRBTree *RB_Delete(struct nodeRBTree *T, struct nodeRBTree *z)
 
 int main(){
     int operation, element, queries, idQuery;
-    struct nodeRBTree *T = AssignNilLeaf(), *z, *min;
-
-    T = RB_Insert(T, element);
-    z = TreeSearch(T, element);
-    T = RB_Delete(T, z);
-
+    struct nodeRBTree *T = AssignNilLeaf(), *min;
+    
     scanf("%d", &queries);
     for (idQuery = 1; idQuery <= queries; idQuery++)
     {
