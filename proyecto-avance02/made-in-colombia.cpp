@@ -1,129 +1,395 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
-#define myPositiveInfinite 2147483647
-#define myNegativeInfinite -2147483647
-#define MAXN 500001
+#define RED 1
+#define BLACK 0
+#define NILKey -2147483647
 
-int Parent(int i){
-    return i/2;
-}
+struct nodeRBTree
+{
+    int key;
+    int color;
+    struct nodeRBTree *left;
+    struct nodeRBTree *right;
+    struct nodeRBTree *p;
+};
 
-int Left(int i){
-    return i*2;
-} 
-
-int Right(int i){
-    return 2*i + 1;
-}
-
-void Minheapify(int Q[], int i, int heapSize){
-    int l, r, least, temp;
-
-    l = Left(i);
-    r = Right(i);
-    if (l <= heapSize && Q[l] < Q[i])
-        least = l;
-    else
-        least = i;
-
-    if (r <= heapSize && Q[r] < Q[least])
-        least = r;
-    
-    if (least != i)
+void InorderTreeWalk(struct nodeRBTree *x)
+{
+    if (x->key != NILKey)
     {
-        temp = Q[i];
-        Q[i] = Q[least];
-        Q[least] = temp;
-
-        Minheapify(Q, least, heapSize);
+        InorderTreeWalk(x->left);
+        if (x->color == BLACK)
+            printf("( %d, BLACK ) ", x->key);
+        else
+            printf("( %d, RED ) ", x->key);
+        InorderTreeWalk(x->right);
     }
 }
 
-void MinPQ_DecreaseKey(int Q[], int i, int key){
-    int temp;
+struct nodeRBTree *TreeSearch(struct nodeRBTree *x, int k)
+{
+    while ((x->key != NILKey) && (k != x->key))
+    {
+        if (k < x->key)
+            x = x->left;
+        else
+            x = x->right;
+    }
+    return x;
+}
 
-    if (key > Q[i])
-        printf("New key is higher than current\n");
+struct nodeRBTree *TreeMinimum(struct nodeRBTree *x)
+{
+    while (x->left->key != NILKey)
+        x = x->left;
+    return x;
+}
+
+struct nodeRBTree *TreeMaximum(struct nodeRBTree *x)
+{
+    while (x->right->key != NILKey)
+        x = x->right;
+    return x;
+}
+
+struct nodeRBTree *TreeSuccessor(struct nodeRBTree *x)
+{
+    struct nodeRBTree *y;
+    if (x->right->key != NILKey)
+        return TreeMinimum(x->right);
+    y = x->p;
+    while ((y->key != NILKey) && (x == y->right))
+    {
+        x = y;
+        y = y->p;
+    }
+    return y;
+}
+
+struct nodeRBTree *TreePredecessor(struct nodeRBTree *x)
+{
+    struct nodeRBTree *y;
+    if (x->left->key != NILKey)
+        return TreeMaximum(x->left);
+    y = x->p;
+    while ((y->key != NILKey) && (x == y->left))
+    {
+        x = y;
+        y = y->p;
+    }
+    return y;
+}
+
+struct nodeRBTree *LeftRotate(struct nodeRBTree *T, struct nodeRBTree *x)
+{
+    struct nodeRBTree *y;
+    y = x->right;
+    x->right = y->left;
+    y->left->p = x;
+    y->p = x->p;
+    if (x->p->key == NILKey)
+        T = y;
     else
     {
-        Q[i] = key;
-        while (i > 1 && Q[Parent(i)] > Q[i]) //i llega a la raiz, por lo cual termina el intercambio
+        if (x == x->p->left)
+            x->p->left = y;
+        else
+            x->p->right = y;
+    }
+    y->left = x;
+    x->p = y;
+    return T;
+}
+
+struct nodeRBTree *RightRotate(struct nodeRBTree *T, struct nodeRBTree *x)
+{
+    struct nodeRBTree *y;
+    y = x->left;
+    x->left = y->right;
+    y->right->p = x;
+    y->p = x->p;
+    if (x->p->key == NILKey)
+        T = y;
+    else
+    {
+        if (x == x->p->right)
+            x->p->right = y;
+        else
+            x->p->left = y;
+    }
+    y->right = x;
+    x->p = y;
+    return T;
+}
+
+struct nodeRBTree *AssignNilLeaf()
+{
+    struct nodeRBTree *w;
+    w = (struct nodeRBTree *)malloc(sizeof(struct nodeRBTree));
+    w->color = BLACK;
+    w->key = NILKey;
+    w->left = NULL;
+    w->right = NULL;
+    return w;
+}
+
+struct nodeRBTree *RB_InsertFixup(struct nodeRBTree *T, struct nodeRBTree *z)
+{
+    struct nodeRBTree *y;
+    while (z->p->color == RED)
+    {
+        if (z->p == z->p->p->left)
         {
-            temp = Q[i];
-            Q[i] = Q[Parent(i)];
-            Q[Parent(i)] = temp;
-            i = Parent(i);
+            y = z->p->p->right;
+            if (y->color == RED)
+            {
+                z->p->color = BLACK;
+                y->color = BLACK;
+                z->p->p->color = RED;
+                z = z->p->p;
+            }
+            else
+            {
+                if (z == z->p->right)
+                {
+                    z = z->p;
+                    T = LeftRotate(T, z);
+                }
+                z->p->color = BLACK;
+                z->p->p->color = RED;
+                T = RightRotate(T, z->p->p);
+            }
         }
-        
+        else
+        {
+            y = z->p->p->left;
+            if (y->color == RED)
+            {
+                z->p->color = BLACK;
+                y->color = BLACK;
+                z->p->p->color = RED;
+                z = z->p->p;
+            }
+            else
+            {
+                if (z == z->p->left)
+                {
+                    z = z->p;
+                    T = RightRotate(T, z);
+                }
+                z->p->color = BLACK;
+                z->p->p->color = RED;
+                T = LeftRotate(T, z->p->p);
+            }
+        }
     }
-
+    T->color = BLACK;
+    return T;
 }
 
-int MinPQ_Extract(int Q[], int *heapSize){
-    int min = myNegativeInfinite;
-
-    if (*heapSize < 1)
-        printf("Error: Heap underflow.\n");
+struct nodeRBTree *RB_Insert(struct nodeRBTree *T, int k)
+{
+    struct nodeRBTree *x, *y, *z;
+    z = (struct nodeRBTree *)malloc(sizeof(struct nodeRBTree));
+    z->color = RED;
+    z->key = k;
+    z->left = AssignNilLeaf();
+    z->left->p = z;
+    z->right = AssignNilLeaf();
+    z->right->p = z;
+    if (T->key != NILKey)
+        y = T->p;
+    else
+        y = T;
+    x = T;
+    while (x->key != NILKey)
+    {
+        y = x;
+        if (z->key < x->key)
+            x = x->left;
+        else
+            x = x->right;
+    }
+    z->p = y;
+    if (y->key == NILKey)
+        T = z; /* Empty tree . */
     else
     {
-        min = Q[1];
-        Q[1] = Q[*heapSize];
-        *heapSize = *heapSize - 1;
-        Minheapify(Q, 1, *heapSize);
+        free(x);
+        if (z->key < y->key)
+            y->left = z;
+        else
+            y->right = z;
     }
-
-    return min;
+    T = RB_InsertFixup(T, z);
+    return T;
 }
 
-void MinPQ_Insert(int Q[], int key, int *heapSize){
-    *heapSize = *heapSize + 1;
-    Q[*heapSize] = myPositiveInfinite;
-    MinPQ_DecreaseKey(Q, *heapSize, key);
+struct nodeRBTree *RB_DeleteFixup(struct nodeRBTree *T, struct nodeRBTree *x)
+{
+    struct nodeRBTree *w;
+    while ((x != T) && (x->color == BLACK))
+    {
+        if (x == x->p->left)
+        {
+            w = x->p->right;
+            if (w->color == RED)
+            {
+                w->color = BLACK;
+                x->p->color = RED;
+                T = LeftRotate(T, x->p);
+                w = x->p->right;
+            }
+            if ((w->left->color == BLACK) && (w->right->color == BLACK))
+            {
+                w->color = RED;
+                x = x->p;
+            }
+            else
+            {
+                if (w->right->color == BLACK)
+                {
+                    w->left->color = BLACK;
+                    w->color = RED;
+                    T = RightRotate(T, w);
+                    w = x->p->right;
+                }
+                w->color = x->p->color;
+                x->p->color = BLACK;
+                w->right->color = BLACK;
+                T = LeftRotate(T, x->p);
+                x = T;
+            }
+        }
+        else
+        {
+            w = x->p->left;
+            if (w->color == RED)
+            {
+                w->color = BLACK;
+                x->p->color = RED;
+                T = RightRotate(T, x->p);
+                w = x->p->left;
+            }
+            if ((w->right->color == BLACK) && (w->left->color == BLACK))
+            {
+                w->color = RED;
+                x = x->p;
+            }
+            else
+            {
+                if (w->left->color == BLACK)
+                {
+                    w->right->color = BLACK;
+                    w->color = RED;
+                    T = LeftRotate(T, w);
+                    w = x->p->left;
+                }
+                w->color = x->p->color;
+                x->p->color = BLACK;
+                w->left->color = BLACK;
+                T = RightRotate(T, x->p);
+                x = T;
+            }
+        }
+    }
+    x->color = BLACK;
+    return T;
+}
+
+struct nodeRBTree *RB_Delete(struct nodeRBTree *T, struct nodeRBTree *z)
+{
+    struct nodeRBTree *x, *y;
+    if ((z->left->key == NILKey) || (z->right->key == NILKey))
+        y = z;
+    else
+        y = TreeSuccessor(z);
+    if (y->left->key != NILKey)
+        x = y->left;
+    else
+        x = y->right;
+    x->p = y->p;
+    if (y->p->key == NILKey)
+        T = x;
+    else
+    {
+        if (y == y->p->left)
+            y->p->left = x;
+        else
+            y->p->right = x;
+    }
+    if (y != z)
+    {
+        z->key = y->key;
+        /* Copy all information fields from y to z. */
+    }
+    if (y->color == BLACK)
+        T = RB_DeleteFixup(T, x);
+    if (y == y->left->p)
+        free(y->left);
+    if (y == y->right->p)
+        free(y->right);
+    free(y);
+    return T;
 }
 
 int main(){
-    int dataMin[MAXN + 1], dataMax[MAXN + 1], n, i, element, heapSizeMin = 0, heapSizeMax = 0, temp;
+    int n, i, element, countMax, countMin;
+    struct nodeRBTree *Tmin = AssignNilLeaf(), *Tmax = AssignNilLeaf(), *max, *temp, *median;
     double mean;
-    long long int median;
+    long long int medianTotal;
 
     while (scanf("%d", &n) && n > 0)
     {
-        median = 0;
-        for(i = 1; i <= n; i++)
+        countMax = 0;
+        countMin = 0;
+        medianTotal = 0;
+        for (i = 1; i <= n; i++)
         {
             scanf("%d", &element);
+            if (Tmax->key != NILKey)
+                max = TreeMaximum(Tmax);
 
-            if (heapSizeMax == 0 || element <= (-1 * dataMax[1]))
-                MinPQ_Insert(dataMax, -1*element, &heapSizeMax);
-            else
-                MinPQ_Insert(dataMin, element, &heapSizeMin);
-        
-            if (heapSizeMax > heapSizeMin + 1)
+            if (Tmax->key == NILKey || element <= max->key)
             {
-                temp = -1 * MinPQ_Extract(dataMax, &heapSizeMax);
-                MinPQ_Insert(dataMin, temp, &heapSizeMin);
+                Tmax = RB_Insert(Tmax, element);
+                countMax++;
             }
-            else if(heapSizeMin > heapSizeMax)
+            else
             {
-                temp = MinPQ_Extract(dataMin, &heapSizeMin);
-                MinPQ_Insert(dataMax, -1 * temp, &heapSizeMax);
+                Tmin = RB_Insert(Tmin, element);
+                countMin++;
+            }
+
+            if (countMax > countMin + 1)
+            {
+                temp = TreeMaximum(Tmax);
+                Tmin = RB_Insert(Tmin, temp->key);
+                Tmax = RB_Delete(Tmax, temp);
+                countMax--;
+                countMin++;
+            }
+            else if (countMin > countMax)
+            {
+                temp = TreeMinimum(Tmin);
+                Tmax = RB_Insert(Tmax, temp->key);
+                Tmin = RB_Delete(Tmin, temp);
+                countMin--;
+                countMax++;
             }
             
-            median += -1 * dataMax[1];
+            median = TreeMaximum(Tmax);
+            medianTotal += median->key;     
         }
-
-        mean = (double)median / n;
+        mean = (double)medianTotal / n;
         printf("%.2lf\n", mean);
-        
-        while (heapSizeMax > 0)
-        {
-            MinPQ_Extract(dataMax, &heapSizeMax);
-        }
-        while (heapSizeMin > 0)
-        {
-            MinPQ_Extract(dataMin, &heapSizeMin);
-        }
+
+        while (Tmax->key != NILKey)
+            Tmax = RB_Delete(Tmax, Tmax);
+        while (Tmin->key != NILKey)
+            Tmin = RB_Delete(Tmin, Tmin);   
     }
     return 0;
 }

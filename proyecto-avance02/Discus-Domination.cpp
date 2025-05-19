@@ -5,6 +5,7 @@
 #define RED 1
 #define BLACK 0
 #define NILKey -2147483647
+#define MAXN 200000
 
 struct nodeRBTree
 {
@@ -336,60 +337,45 @@ struct nodeRBTree *RB_Delete(struct nodeRBTree *T, struct nodeRBTree *z)
 }
 
 int main(){
-    int n, i, element, countMax, countMin;
-    struct nodeRBTree *Tmin = AssignNilLeaf(), *Tmax = AssignNilLeaf(), *max, *temp, *median;
-    double mean;
-    long long int medianTotal;
+    int n, m, distance, greaterDistance = 0, positions[MAXN + 1], positionDebbie, indexInsert;
+    struct nodeRBTree *T = AssignNilLeaf(), *max, *z;
 
-    while (scanf("%d", &n) && n > 0)
+    scanf("%d %d", &n, &m);
+
+    for (int i = 1; i <= n; i++)
+        scanf("%d", &positions[i]);
+
+    for (int i = 1; i <= m + 1; i++)
+        T = RB_Insert(T, positions[i]);
+
+    for (int i = 1; i <= n; i++)
     {
-        countMax = 0;
-        countMin = 0;
-        medianTotal = 0;
-        for (i = 1; i <= n; i++)
+        positionDebbie = positions[i];
+
+        if (i + m < n)
         {
-            scanf("%d", &element);
-            if (Tmax->key != NILKey)
-                max = TreeMaximum(Tmax);
-
-            if (Tmax->key == NILKey || element <= max->key)
-            {
-                Tmax = RB_Insert(Tmax, element);
-                countMax++;
-            }
-            else
-            {
-                Tmin = RB_Insert(Tmin, element);
-                countMin++;
-            }
-
-            if (countMax > countMin + 1)
-            {
-                temp = TreeMaximum(Tmax);
-                Tmin = RB_Insert(Tmin, temp->key);
-                Tmax = RB_Delete(Tmax, temp);
-                countMax--;
-                countMin++;
-            }
-            else if (countMin > countMax)
-            {
-                temp = TreeMinimum(Tmin);
-                Tmax = RB_Insert(Tmax, temp->key);
-                Tmin = RB_Delete(Tmin, temp);
-                countMin--;
-                countMax++;
-            }
+            max = TreeMaximum(T);
+            distance = max->key - positionDebbie;
+            if (distance > greaterDistance)
+                greaterDistance = distance;
             
-            median = TreeMaximum(Tmax);
-            medianTotal += median->key;     
-        }
-        mean = (double)medianTotal / n;
-        printf("%.2lf\n", mean);
+            z = TreeSearch(T, positionDebbie);
+            T = RB_Delete(T, z);
 
-        while (Tmax->key != NILKey)
-            Tmax = RB_Delete(Tmax, Tmax);
-        while (Tmin->key != NILKey)
-            Tmin = RB_Delete(Tmin, Tmin);   
+            indexInsert = m + i + 1;
+            T = RB_Insert(T, positions[indexInsert]);
+        }
+        else
+        {
+            max = TreeMaximum(T);
+            distance = max->key - positionDebbie;
+            if (distance > greaterDistance)
+                greaterDistance = distance;
+
+            z = TreeSearch(T, positionDebbie);
+            T = RB_Delete(T, z);
+        }  
     }
+    printf("%d\n", greaterDistance);    
     return 0;
 }
