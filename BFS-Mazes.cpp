@@ -15,7 +15,7 @@ struct cell
     int coord_y;
 };
 
-struct cell ReadMaze(char Maze[][MAXW], int W, int H)
+void ReadMaze(char Maze[][MAXW], int W, int H)
 {
     char line[MAXW];
     int idRow, idColumn;
@@ -25,18 +25,8 @@ struct cell ReadMaze(char Maze[][MAXW], int W, int H)
     {
         scanf("%s", line);
         for(idColumn=1; idColumn<=W; idColumn++)
-        {
             Maze[idRow][idColumn] = line[idColumn - 1];
-            if(line[idColumn - 1] == '@')
-            {
-                source.coord_x = idColumn;
-                source.coord_y = idRow;
-                Maze[idRow][idColumn] = '.';
-            }
-        }
     }
-
-    return source;
 }
 
 
@@ -68,7 +58,7 @@ void initializeMovements(struct cell movements[])
     movements[4].coord_y = 0;
 }
 
-void BFS_Maze(char Maze[][MAXW], int W, int H, struct cell s,
+struct cell BFS_Maze(char Maze[][MAXW], int W, int H, struct cell s,
               int color[][MAXW], int d[][MAXW], struct cell pi[][MAXW])
 {
     int idRow, idColumn, idHead = 1, idTail = 1, idMovement;
@@ -117,14 +107,20 @@ void BFS_Maze(char Maze[][MAXW], int W, int H, struct cell s,
         }
         color[u.coord_y][u.coord_x] = BLACK;
     }
+
+    return u; //celda donde se alcanza la distancia maxima
 }
 
 void solver(char Maze[][MAXW], int W, int H, struct cell source)
 {
     int color[MAXH][MAXW], d[MAXH][MAXW], idRow, idColumn;
-    struct cell pi[MAXH][MAXW];
+    struct cell pi[MAXH][MAXW], extremo;
 
-    BFS_Maze(Maze, W, H, source, color, d, pi);
+    extremo = BFS_Maze(Maze, W, H, source, color, d, pi);
+
+    extremo = BFS_Maze(Maze, W, H, extremo, color, d, pi);
+    printf("\n%d\n", d[extremo.coord_y][extremo.coord_x]);
+    printf("\n%d %d\n", extremo.coord_y, extremo.coord_x);
 
     printf("Matrix of colors:\n\n");
     for(idRow=1; idRow<=H; idRow++)
@@ -194,11 +190,32 @@ int main()
     scanf("%d", &T);
     for(idCase=1; idCase<=T; idCase++)
     {
-        scanf("%d %d", &W, &H);
-        source = ReadMaze(Maze, W, H);
+        scanf("%d %d", &H, &W);
+        ReadMaze(Maze, W, H);
         PrintMaze(Maze, W, H);
-        solver(Maze, W, H, source);
+        solver(Maze, W, H, {1, 1});
     }
 
     return 0;
 }
+/*
+1
+7 8
+.....#.#
+.###.#..
+.#...##.
+.#####..
+.#.###.#
+.#...#..
+...####.
+
+
+
+1
+5 7
+...#...
+...#...
+...#...
+...#...
+...#...
+*/
