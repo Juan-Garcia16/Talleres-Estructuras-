@@ -52,9 +52,9 @@ void initializeMovements(struct cell movements[])
     movements[1].coord_y = -1;
     movements[2].coord_x = 0;
     movements[2].coord_y = 1;
-    movements[3].coord_x = 1;
+    movements[3].coord_x = -1;
     movements[3].coord_y = 0;
-    movements[4].coord_x = -1;
+    movements[4].coord_x = 1;
     movements[4].coord_y = 0;
 }
 
@@ -108,10 +108,13 @@ struct cell BFS_Maze(char Maze[][MAXW], int W, int H, struct cell s,
         color[u.coord_y][u.coord_x] = BLACK;
     }
 
+    printf("\n%d\n", d[u.coord_y][u.coord_x]);
+    printf("\n%d %d\n", u.coord_y, u.coord_x);
+
     return u; //celda donde se alcanza la distancia maxima
 }
 
-void solver(char Maze[][MAXW], int W, int H, struct cell source)
+void solverBFS(char Maze[][MAXW], int W, int H, struct cell source)
 {
     int color[MAXH][MAXW], d[MAXH][MAXW], idRow, idColumn;
     struct cell pi[MAXH][MAXW], extremo;
@@ -193,7 +196,7 @@ int main()
         scanf("%d %d", &H, &W);
         ReadMaze(Maze, W, H);
         PrintMaze(Maze, W, H);
-        solver(Maze, W, H, {1, 1});
+        solverBFS(Maze, W, H, {1, 1});
     }
 
     return 0;

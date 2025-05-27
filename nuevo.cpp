@@ -8,6 +8,7 @@
 #define GRAY 1
 #define WHITE 2
 #define myInfinite 2147483647
+#define NIL -1
 
 struct cell
 {
@@ -62,6 +63,140 @@ void assignMovements(struct cell arrayMov[])
     arrayMov[4].coord_y = 0;
 }
 
+
+struct cell BFS_Maze(char Maze[][MAXW + 1], int W, int H, struct cell s,
+              int color[][MAXW + 1], int d[][MAXW + 1], struct cell pi[][MAXW + 1])
+{
+    int idRow, idColumn, idHead = 1, idTail = 1, idMovement;
+    struct cell NilFather, Q[(H * W) + 5], u, v, movements[5];
+
+    assignMovements(movements);
+    NilFather.coord_x = NIL;
+    NilFather.coord_y = NIL;
+
+    for(idRow = 1; idRow <= H; idRow++)
+    {
+        for(idColumn = 1; idColumn <= W; idColumn++)
+        {
+            color[idRow][idColumn] = WHITE;
+            d[idRow][idColumn] = myInfinite;
+            pi[idRow][idColumn] = NilFather;
+        }
+    }
+
+    color[s.coord_y][s.coord_x] = GRAY;
+    d[s.coord_y][s.coord_x] = 0;
+    pi[s.coord_y][s.coord_x] = NilFather;
+    Q[idTail] = s;
+    idTail++;
+
+    while(idHead < idTail)
+    {
+        u = Q[idHead];
+        idHead++;
+        for(idMovement = 1; idMovement <= 4; idMovement++)
+        {
+            v.coord_x = u.coord_x + movements[idMovement].coord_x;
+            v.coord_y = u.coord_y + movements[idMovement].coord_y;
+
+            if((v.coord_x >= 1 && v.coord_x <= W) &&
+               (v.coord_y >= 1 && v.coord_y <= H) &&
+               (Maze[v.coord_y][v.coord_x] == '.') &&
+               (color[v.coord_y][v.coord_x] == WHITE))
+            {
+                color[v.coord_y][v.coord_x] = GRAY;
+                d[v.coord_y][v.coord_x] = d[u.coord_y][u.coord_x] + 1;
+                pi[v.coord_y][v.coord_x] = u;
+                Q[idTail] = v;
+                idTail++;
+            }
+        }
+        color[u.coord_y][u.coord_x] = BLACK;
+    }
+
+    //printf("\n%d\n", d[u.coord_y][u.coord_x]);
+    //printf("\n%d %d\n", u.coord_y, u.coord_x);
+
+    return u; //celda donde se alcanza la distancia maxima
+}
+
+void solverBFS(char Maze[][MAXW + 1], int W, int H, struct cell source)
+{
+    int color[MAXH + 1][MAXW + 1], d[MAXH + 1][MAXW + 1], idRow, idColumn;
+    struct cell pi[MAXH + 1][MAXW + 1], extremo;
+
+    extremo = BFS_Maze(Maze, W, H, source, color, d, pi);
+    //printf("\n%d\n", d[extremo.coord_y][extremo.coord_x]);
+    //printf("\n%d %d\n", extremo.coord_y, extremo.coord_x);
+
+    extremo = BFS_Maze(Maze, W, H, extremo, color, d, pi);
+    printf("\n%d\n", d[extremo.coord_y][extremo.coord_x]);
+    printf("\n%d %d\n", extremo.coord_y, extremo.coord_x);
+
+    
+
+
+    /*
+    printf("Matrix of colors:\n\n");
+    for(idRow=1; idRow<=H; idRow++)
+    {
+        for(idColumn=1; idColumn <= W; idColumn++)
+        {
+            if(color[idRow][idColumn] == WHITE)
+                printf(" W");
+            if(color[idRow][idColumn] == GRAY)
+                printf(" G");
+            if(color[idRow][idColumn] == BLACK)
+                printf(" B");
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    printf("Matrix of distances:\n\n");
+    for(idRow=1; idRow<=H; idRow++)
+    {
+        for(idColumn=1; idColumn<=W; idColumn++)
+        {
+            if(d[idRow][idColumn] == myInfinite)
+                printf(" IN");
+            else
+            {
+                if(d[idRow][idColumn] < 10)
+                    printf("  %d", d[idRow][idColumn]);
+                else
+                    printf(" %d", d[idRow][idColumn]);
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    printf("Matrix of fathers:\n\n");
+    for(idRow=1; idRow<=H; idRow++)
+    {
+        for(idColumn=1; idColumn<=W; idColumn++)
+        {
+            if(pi[idRow][idColumn].coord_x == NIL)
+                printf(" [ -1, -1]");
+            else
+            {
+                if(pi[idRow][idColumn].coord_x < 10)
+                    printf(" [  %d,", pi[idRow][idColumn].coord_x);
+                else
+                    printf(" [ %d,", pi[idRow][idColumn].coord_x);
+                if(pi[idRow][idColumn].coord_y < 10)
+                    printf("  %d]", pi[idRow][idColumn].coord_y);
+                else
+                    printf(" %d]", pi[idRow][idColumn].coord_y);
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+    */
+}
+
 void DFS_Visit_Maze(char Maze[][MAXW + 1],
               int H, int W, struct cell U, int *time,
               int color[][MAXW + 1],
@@ -108,9 +243,9 @@ void DFS_Maze(char Maze[][MAXW + 1],
     NILFather.coord_y = NIL;
     assignMovements(arrayMov);
 
-    int depth, maxDepth = 0; 
+    int depth, maxDepth = 0, trees = 0; 
     struct cell root1, root2 = {-1, -1};
-    int depthRoot1, depthRoot2;
+    struct cell depthRoot1, depthRoot2;
 
     for(idRow = 1; idRow <= H; idRow++)
     {
@@ -135,6 +270,7 @@ void DFS_Maze(char Maze[][MAXW + 1],
             {
                 DFS_Visit_Maze(Maze, H, W, U, &time, color, d, f, pi, arrayMov);
                 //coodenadas funciona y,x
+                trees++;
                 depth = ((f[U.coord_y][U.coord_x] - d[U.coord_y][U.coord_x]) / 2) + 1;
                 if(depth > maxDepth)
                 {
@@ -147,13 +283,15 @@ void DFS_Maze(char Maze[][MAXW + 1],
         }
     }
 
-    if(root2.coord_y != -1 && root2.coord_x != -1)
-    {
-        
-    }
+    //printf("---------");
+    //printf("\n%d\n", maxDepth);
+    //printf("\n%d %d\n", root1.coord_y, root1.coord_x);
 
-    printf("\n%d %d\n", root1.coord_y, root1.coord_x);
-    printf("\n%d %d\n", root2.coord_y, root2.coord_x);
+    printf("%d %d ", trees, maxDepth);
+    solverBFS(Maze, W, H, root1);
+    //printf("\n%d\n", d[depthRoot1.coord_y][depthRoot1.coord_x]);
+    //printf("\n%d %d\n", depthRoot1.coord_y, depthRoot1.coord_x);
+
 }
 
 void solverDFS(char Maze[][MAXW + 1], int H, int W)
@@ -255,6 +393,7 @@ int main()
         scanf("%d %d", &H, &W);
         ReadMaze(Maze, H, W);
         //PrintMaze(Maze, H, W);
+        printf("Case %d: ", idCase);
         solverDFS(Maze, H, W);
     }
     return 0;
