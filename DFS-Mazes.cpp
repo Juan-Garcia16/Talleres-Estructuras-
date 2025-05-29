@@ -28,8 +28,7 @@ void ReadMaze(char Maze[][MAXW + 1], int H, int W)
     }
 }
 
-void PrintMaze(char Maze[][MAXW + 1],
-                     int H, int W)
+void PrintMaze(char Maze[][MAXW + 1], int H, int W)
 {
     int idRow, idColumn;
 
