@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#define MAXV 10000
+#define MAXV 100000
 #define myInfinite 2147483647
 #define NIL -1
 #define TRUE 1
@@ -24,111 +24,111 @@ struct graph
 
 struct nodePQ
 {
-	int vertex;
-	int distance;
+    int vertex;
+    int distance;
 };
 
 
 int Parent(int i)
 {
-	return i >> 1; /* return i / 2; */
+    return i >> 1; /* return i / 2; */
 }
 
 
 int Left(int i)
 {
-	return i << 1; /* return 2 * i; */
+    return i << 1; /* return 2 * i; */
 }
 
 
 int Right(int i)
 {
-	return (i << 1) + 1; /* return 2 * i + 1; */
+    return (i << 1) + 1; /* return 2 * i + 1; */
 }
 
 
 void MinHeapify(struct nodePQ Q[], int i, int heapSize, int positionVertex[])
 {
-	int l, r, least, tempPosition;
-	struct nodePQ tempNode;
-	l = Left(i);
-	r = Right(i);
+    int l, r, least, tempPosition;
+    struct nodePQ tempNode;
+    l = Left(i);
+    r = Right(i);
 
-	if((l <= heapSize) && (Q[l].distance < Q[i].distance))
-		least = l;
-	else
-		least = i;
+    if((l <= heapSize) && (Q[l].distance < Q[i].distance))
+        least = l;
+    else
+        least = i;
 
-	if((r <= heapSize) && (Q[r].distance < Q[least].distance))
-		least = r;
+    if((r <= heapSize) && (Q[r].distance < Q[least].distance))
+        least = r;
 
-	if(least != i)
-	{
-		tempPosition = positionVertex[Q[i].vertex];
-		tempNode = Q[i];
+    if(least != i)
+    {
+        tempPosition = positionVertex[Q[i].vertex];
+        tempNode = Q[i];
 
-		positionVertex[Q[i].vertex] = positionVertex[Q[least].vertex];
-		Q[i] = Q[least];
+        positionVertex[Q[i].vertex] = positionVertex[Q[least].vertex];
+        Q[i] = Q[least];
 
-		positionVertex[Q[least].vertex] = tempPosition;
-		Q[least] = tempNode;
+        positionVertex[Q[least].vertex] = tempPosition;
+        Q[least] = tempNode;
 
-		MinHeapify(Q, least, heapSize, positionVertex);
-	}
+        MinHeapify(Q, least, heapSize, positionVertex);
+    }
 }
 
 
 int MinPQ_Extract(struct nodePQ Q[], int *heapSize, int positionVertex[])
 {
-	int myMin = 0;
+    int myMin = 0;
 
-	if(*heapSize >= 1)
-	{
-		myMin = Q[1].vertex;
+    if(*heapSize >= 1)
+    {
+        myMin = Q[1].vertex;
 
-		positionVertex[Q[*heapSize].vertex] = 1;
-		Q[1] = Q[*heapSize];
+        positionVertex[Q[*heapSize].vertex] = 1;
+        Q[1] = Q[*heapSize];
 
-		*heapSize = *heapSize - 1;
-		MinHeapify(Q, 1, *heapSize, positionVertex);
-	}
-	return myMin;
+        *heapSize = *heapSize - 1;
+        MinHeapify(Q, 1, *heapSize, positionVertex);
+    }
+    return myMin;
 }
 
 
 void MinPQ_DecreaseKey(struct nodePQ Q[], int i, int key, int positionVertex[])
 {
-	int tempPosition;
-	struct nodePQ tempNode;
+    int tempPosition;
+    struct nodePQ tempNode;
 
-	if(key < Q[i].distance)
-	{
-		Q[i].distance = key;
+    if(key < Q[i].distance)
+    {
+        Q[i].distance = key;
 
-		while((i > 1) && (Q[Parent(i)].distance > Q[i].distance))
-		{
-			tempPosition = positionVertex[Q[i].vertex];
-			tempNode = Q[i];
+        while((i > 1) && (Q[Parent(i)].distance > Q[i].distance))
+        {
+            tempPosition = positionVertex[Q[i].vertex];
+            tempNode = Q[i];
 
-			positionVertex[Q[i].vertex] = positionVertex[Q[Parent(i)].vertex];
-			Q[i] = Q[Parent(i)];
+            positionVertex[Q[i].vertex] = positionVertex[Q[Parent(i)].vertex];
+            Q[i] = Q[Parent(i)];
 
-			positionVertex[Q[Parent(i)].vertex] = tempPosition;
-			Q[Parent(i)] = tempNode;
+            positionVertex[Q[Parent(i)].vertex] = tempPosition;
+            Q[Parent(i)] = tempNode;
 
-			i = Parent(i);
-		}
-	}
+            i = Parent(i);
+        }
+    }
 }
 
 
 void MinPQ_Insert(struct nodePQ Q[], int key, int vertex, int *heapSize, int positionVertex[])
 {
-	*heapSize = *heapSize + 1;
-	Q[*heapSize].distance = myInfinite;
-	Q[*heapSize].vertex = vertex;
-	positionVertex[vertex] = *heapSize;
-	MinPQ_DecreaseKey(Q, *heapSize, key, positionVertex);
+    *heapSize = *heapSize + 1;
+    Q[*heapSize].distance = myInfinite;
+    Q[*heapSize].vertex = vertex;
+    positionVertex[vertex] = *heapSize;
+    MinPQ_DecreaseKey(Q, *heapSize, key, positionVertex);
 }
 
 
@@ -219,78 +219,64 @@ struct graph *DeleteGraph(struct graph *G)
 
 void Prim(struct graph *G, int d[], int pi[], int s)
 {
-	int u, v, w, heapSize = 0;
-	struct nodePQ Q[MAXV + 1];
-	int positionVertex[MAXV + 1], inQueue[MAXV + 1];
-	struct edge *tempEdge;
+    int u, v, w, heapSize = 0;
+    struct nodePQ Q[MAXV + 1];
+    int positionVertex[MAXV + 1], inQueue[MAXV + 1];
+    struct edge *tempEdge;
 
-	for(u = 1; u <= G->n_vertex; u++)
-	{
-		pi[u] = NIL;
-		inQueue[u] = TRUE;
+    for(u = 1; u <= G->n_vertex; u++)
+    {
+        pi[u] = NIL;
+        inQueue[u] = TRUE;
 
-		if(u == s)
-		{
-			MinPQ_Insert(Q, 0, s, &heapSize, positionVertex);
-			d[s] = 0;
-		}
-		else
-		{
-			MinPQ_Insert(Q, myInfinite, u, &heapSize, positionVertex);
-			d[u] = myInfinite;
-		}
-	}
+        if(u == s)
+        {
+            MinPQ_Insert(Q, 0, s, &heapSize, positionVertex);
+            d[s] = 0;
+        }
+        else
+        {
+            MinPQ_Insert(Q, myInfinite, u, &heapSize, positionVertex);
+            d[u] = myInfinite;
+        }
+    }
 
-	while(heapSize >= 1)
-	{
-		u = MinPQ_Extract(Q, &heapSize, positionVertex);
-		inQueue[u] = FALSE;
+    while(heapSize >= 1)
+    {
+        u = MinPQ_Extract(Q, &heapSize, positionVertex);
+        inQueue[u] = FALSE;
 
-		if(d[u] == myInfinite)
-			break;
+        if(d[u] == myInfinite)
+            break;
 
-		tempEdge = G->Adj[u];
-		while(tempEdge != NULL)
-		{
-			v = tempEdge->vertex;
-			w = tempEdge->weight;
+        tempEdge = G->Adj[u];
+        while(tempEdge != NULL)
+        {
+            v = tempEdge->vertex;
+            w = tempEdge->weight;
 
-			if((inQueue[v] == TRUE) && (d[v] > w)) //para dijkstra
-			{
-				d[v] = w; //para dijkstra
-				pi[v] = u;
-				MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
-			}
-			tempEdge = tempEdge->next;
-		}
-	}
+            if((inQueue[v] == TRUE) && (d[v] > w)) //para dijkstra
+            {
+                d[v] = w; //para dijkstra
+                pi[v] = u;
+                MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
+            }
+            tempEdge = tempEdge->next;
+        }
+    }
 }
 
 
 void solver(struct graph *G, int source)
 {
-    int d[MAXV + 1], pi[MAXV + 1], idVertex, weightMST = 0;
+    int d[MAXV + 1], pi[MAXV + 1], idVertex;
+    long long int weightMST = 0;
     Prim(G, d, pi, source);
 
-    //printf("\n");
     for(idVertex = 1; idVertex <= G->n_vertex; idVertex++)
-    {
-        //printf("d[%d]: %d\n", idVertex, d[idVertex]);
         weightMST += d[idVertex];
-    }
-    //printf("\n");
-    /*
-    for(idVertex = 1; idVertex <= G->n_vertex; idVertex++)
-    {
-        if(pi[idVertex] == NIL)
-            printf("pi[%d]: NIL\n", idVertex);
-        else
-            printf("pi[%d]: %d\n", idVertex, pi[idVertex]);
-    }
-    printf("\n");
-    */
 
-    printf("%d\n", weightMST);
+    printf("%lld\n", weightMST);
 }
 
 
@@ -302,28 +288,8 @@ int main()
     while(scanf("%d %d", &vertices, &edges) != EOF)
     {
         G = ReadGraph(vertices, edges);
-        //PrintGraph(G);
         solver(G, source);
         G = DeleteGraph(G);
-        //PrintGraph(G);
     }
     return 0;
 }
-
-/*
-9 14
-9 8 7
-9 7 6
-9 3 2
-8 7 1
-8 2 11
-8 1 8
-7 6 2
-6 5 10
-6 4 14
-6 3 4
-5 4 9
-4 3 7
-3 2 8
-2 1 4
-*/
