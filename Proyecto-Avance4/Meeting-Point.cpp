@@ -265,8 +265,6 @@ void Dijkstra(struct graph *G, int d[], int pi[], int s)
 }
 
 void DeleteVertex(struct graph *G, int v) {
-    int u;
-
     //Eliminar todas las aristas que salen de v
     struct edge *current = G->Adj[v];
     struct edge *temp;
@@ -279,7 +277,7 @@ void DeleteVertex(struct graph *G, int v) {
     G->Adj[v] = NULL;
 
     //Eliminar todas las aristas que apuntan hacia v por ser bidireccional
-    for (u = 1; u <= G->n_vertex; u++) 
+    for (int u = 1; u <= G->n_vertex; u++) 
     {
         if (u != v) 
         {
@@ -291,7 +289,7 @@ void DeleteVertex(struct graph *G, int v) {
                 {
                     // Eliminar arista que apunta hacia v
                     if (prev == NULL) 
-                        G->Adj[u] = current->next; //Inicio de la lista
+                        G->Adj[u] = current->next; //Si el vertice v es el primero en la lista de u
                     else 
                         prev->next = current->next; //En medio o al final
 
@@ -308,7 +306,6 @@ void DeleteVertex(struct graph *G, int v) {
         }
     }
 }
-
 
 
 void solver(struct graph *Graph, int source, int N, int G)
