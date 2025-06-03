@@ -24,111 +24,111 @@ struct graph
 
 struct nodePQ
 {
-	int vertex;
-	int distance;
+    int vertex;
+    int distance;
 };
 
 
 int Parent(int i)
 {
-	return i >> 1; /* return i / 2; */
+    return i >> 1; /* return i / 2; */
 }
 
 
 int Left(int i)
 {
-	return i << 1; /* return 2 * i; */
+    return i << 1; /* return 2 * i; */
 }
 
 
 int Right(int i)
 {
-	return (i << 1) + 1; /* return 2 * i + 1; */
+    return (i << 1) + 1; /* return 2 * i + 1; */
 }
 
 
 void MinHeapify(struct nodePQ Q[], int i, int heapSize, int positionVertex[])
 {
-	int l, r, least, tempPosition;
-	struct nodePQ tempNode;
-	l = Left(i);
-	r = Right(i);
+    int l, r, least, tempPosition;
+    struct nodePQ tempNode;
+    l = Left(i);
+    r = Right(i);
 
-	if((l <= heapSize) && (Q[l].distance < Q[i].distance))
-		least = l;
-	else
-		least = i;
+    if((l <= heapSize) && (Q[l].distance < Q[i].distance))
+        least = l;
+    else
+        least = i;
 
-	if((r <= heapSize) && (Q[r].distance < Q[least].distance))
-		least = r;
+    if((r <= heapSize) && (Q[r].distance < Q[least].distance))
+        least = r;
 
-	if(least != i)
-	{
-		tempPosition = positionVertex[Q[i].vertex];
-		tempNode = Q[i];
+    if(least != i)
+    {
+        tempPosition = positionVertex[Q[i].vertex];
+        tempNode = Q[i];
 
-		positionVertex[Q[i].vertex] = positionVertex[Q[least].vertex];
-		Q[i] = Q[least];
+        positionVertex[Q[i].vertex] = positionVertex[Q[least].vertex];
+        Q[i] = Q[least];
 
-		positionVertex[Q[least].vertex] = tempPosition;
-		Q[least] = tempNode;
+        positionVertex[Q[least].vertex] = tempPosition;
+        Q[least] = tempNode;
 
-		MinHeapify(Q, least, heapSize, positionVertex);
-	}
+        MinHeapify(Q, least, heapSize, positionVertex);
+    }
 }
 
 
 int MinPQ_Extract(struct nodePQ Q[], int *heapSize, int positionVertex[])
 {
-	int myMin = 0;
+    int myMin = 0;
 
-	if(*heapSize >= 1)
-	{
-		myMin = Q[1].vertex;
+    if(*heapSize >= 1)
+    {
+        myMin = Q[1].vertex;
 
-		positionVertex[Q[*heapSize].vertex] = 1;
-		Q[1] = Q[*heapSize];
+        positionVertex[Q[*heapSize].vertex] = 1;
+        Q[1] = Q[*heapSize];
 
-		*heapSize = *heapSize - 1;
-		MinHeapify(Q, 1, *heapSize, positionVertex);
-	}
-	return myMin;
+        *heapSize = *heapSize - 1;
+        MinHeapify(Q, 1, *heapSize, positionVertex);
+    }
+    return myMin;
 }
 
 
 void MinPQ_DecreaseKey(struct nodePQ Q[], int i, int key, int positionVertex[])
 {
-	int tempPosition;
-	struct nodePQ tempNode;
+    int tempPosition;
+    struct nodePQ tempNode;
 
-	if(key < Q[i].distance)
-	{
-		Q[i].distance = key;
+    if(key < Q[i].distance)
+    {
+        Q[i].distance = key;
 
-		while((i > 1) && (Q[Parent(i)].distance > Q[i].distance))
-		{
-			tempPosition = positionVertex[Q[i].vertex];
-			tempNode = Q[i];
+        while((i > 1) && (Q[Parent(i)].distance > Q[i].distance))
+        {
+            tempPosition = positionVertex[Q[i].vertex];
+            tempNode = Q[i];
 
-			positionVertex[Q[i].vertex] = positionVertex[Q[Parent(i)].vertex];
-			Q[i] = Q[Parent(i)];
+            positionVertex[Q[i].vertex] = positionVertex[Q[Parent(i)].vertex];
+            Q[i] = Q[Parent(i)];
 
-			positionVertex[Q[Parent(i)].vertex] = tempPosition;
-			Q[Parent(i)] = tempNode;
+            positionVertex[Q[Parent(i)].vertex] = tempPosition;
+            Q[Parent(i)] = tempNode;
 
-			i = Parent(i);
-		}
-	}
+            i = Parent(i);
+        }
+    }
 }
 
 
 void MinPQ_Insert(struct nodePQ Q[], int key, int vertex, int *heapSize, int positionVertex[])
 {
-	*heapSize = *heapSize + 1;
-	Q[*heapSize].distance = myInfinite;
-	Q[*heapSize].vertex = vertex;
-	positionVertex[vertex] = *heapSize;
-	MinPQ_DecreaseKey(Q, *heapSize, key, positionVertex);
+    *heapSize = *heapSize + 1;
+    Q[*heapSize].distance = myInfinite;
+    Q[*heapSize].vertex = vertex;
+    positionVertex[vertex] = *heapSize;
+    MinPQ_DecreaseKey(Q, *heapSize, key, positionVertex);
 }
 
 
@@ -217,71 +217,130 @@ struct graph *DeleteGraph(struct graph *G)
 }
 
 
-void Dijkstra(struct graph *G, long long int d[], int pi[], int s)
+void Dijkstra(struct graph *G, int d[], int pi[], int s)
 {
-	int u, v, w, heapSize = 0;
-	struct nodePQ Q[MAXV + 1];
-	int positionVertex[MAXV + 1], inQueue[MAXV + 1];
-	struct edge *tempEdge;
+    int u, v, w, heapSize = 0;
+    struct nodePQ Q[MAXV + 1];
+    int positionVertex[MAXV + 1];
+    struct edge *tempEdge;
 
-	for(u = 1; u <= G->n_vertex; u++)
-	{
-		pi[u] = NIL;
-		inQueue[u] = TRUE;
+    for(u = 1; u <= G->n_vertex; u++)
+    {
+        pi[u] = NIL;
 
-		if(u == s)
-		{
-			MinPQ_Insert(Q, 0, s, &heapSize, positionVertex);
-			d[s] = 0;
-		}
-		else
-		{
-			MinPQ_Insert(Q, myInfinite, u, &heapSize, positionVertex);
-			d[u] = myInfinite;
-		}
-	}
+        if(u == s)
+        {
+            MinPQ_Insert(Q, 0, s, &heapSize, positionVertex);
+            d[s] = 0;
+        }
+        else
+        {
+            MinPQ_Insert(Q, myInfinite, u, &heapSize, positionVertex);
+            d[u] = myInfinite;
+        }
+    }
 
-	while(heapSize >= 1)
-	{
-		u = MinPQ_Extract(Q, &heapSize, positionVertex);
-		inQueue[u] = FALSE;
+    while(heapSize >= 1)
+    {
+        u = MinPQ_Extract(Q, &heapSize, positionVertex);
 
-		if(d[u] == myInfinite)
-			break;
+        if(d[u] == myInfinite)
+            break;
 
-		tempEdge = G->Adj[u];
-		while(tempEdge != NULL)
-		{
-			v = tempEdge->vertex;
-			w = tempEdge->weight;
+        tempEdge = G->Adj[u];
+        while(tempEdge != NULL)
+        {
+            v = tempEdge->vertex;
+            w = tempEdge->weight;
 
-			if(d[v] > (d[u] + w)) //para dijkstra
-			{
-				d[v] = d[u] + w; //para dijkstra
-				pi[v] = u;
-				MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
-			}
-			tempEdge = tempEdge->next;
-		}
-	}
+            if(d[v] > (d[u] + w)) //para dijkstra
+            {
+                d[v] = d[u] + w; //para dijkstra
+                pi[v] = u;
+                MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
+            }
+            tempEdge = tempEdge->next;
+        }
+    }
 }
+
+void DeleteVertex(struct graph *G, int v) {
+    int u;
+
+    //Eliminar todas las aristas que salen de v
+    struct edge *current = G->Adj[v];
+    struct edge *temp;
+    while (current != NULL) 
+    {
+        temp = current;
+        current = current->next;
+        free(temp);
+    }
+    G->Adj[v] = NULL;
+
+    //Eliminar todas las aristas que apuntan hacia v por ser bidireccional
+    for (u = 1; u <= G->n_vertex; u++) 
+    {
+        if (u != v) 
+        {
+            current = G->Adj[u];
+            struct edge *prev = NULL;
+
+            while (current != NULL) {
+                if (current->vertex == v) 
+                {
+                    // Eliminar arista que apunta hacia v
+                    if (prev == NULL) 
+                        G->Adj[u] = current->next; //Inicio de la lista
+                    else 
+                        prev->next = current->next; //En medio o al final
+
+                    temp = current;
+                    current = current->next;
+                    free(temp);
+                } 
+                else 
+                {
+                    prev = current; //Se sigue avanzando
+                    current = current->next;
+                }
+            }
+        }
+    }
+}
+
 
 
 void solver(struct graph *Graph, int source, int N, int G)
 {
-    long long int d[MAXV + 1];
-    int pi[MAXV + 1], found = 0;
-    Dijkstra(Graph, d, pi, source);
+    int d[MAXV + 1], pi[MAXV + 1], found = 0, rutas[MAXV + 1], distancias[MAXV + 1], indexRutas = 1;
+    Dijkstra(Graph, d, pi, source); 
 
-    for (int i = 2; i <= N; i++)
+    for (int i = 1; i <= N; i++)
     {
-        if((d[i] / 2 == d[G]) && pi[i] == G)
+        if(d[i] / 2 == d[G])
         {
-            printf("%d ", i);
-            found = 1;
+            rutas[indexRutas] = i;
+            distancias[indexRutas] = d[i];
+            indexRutas++;
+        }
+        
+    }
+    
+    DeleteVertex(Graph, G);
+    Dijkstra(Graph, d, pi, source);
+    
+    d[G] = 0; 
+    
+    for (int i = 1; i <= indexRutas - 1; i++)
+    {
+        if (d[rutas[i]] != distancias[i])
+        {
+            printf("%d ", rutas[i]);  
+             found = 1;
         }
     }
-
+    
     if(!found)
         printf("*");
 }
@@ -299,3 +358,12 @@ int main()
     Graph = DeleteGraph(Graph);
     return 0;
 }
+/*
+4 5
+1 3
+1 3 1
+2 1 3
+2 4 3
+4 3 1
+3 2 1
+*/
