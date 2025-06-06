@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#define MAXV 100000
+#define MAXV 10000
 #define myInfinite 2147483647
 #define NIL -1
 #define TRUE 1
@@ -12,6 +12,7 @@ struct edge
 {
     int vertex;
     int weight;
+    int active; // Nuevo campo: 1 arista activa, 0 inactiva.
     struct edge *next;
 };
 
@@ -28,24 +29,20 @@ struct nodePQ
     int distance;
 };
 
-
 int Parent(int i)
 {
-    return i >> 1; /* return i / 2; */
+    return i >> 1; // return i / 2;
 }
-
 
 int Left(int i)
 {
-    return i << 1; /* return 2 * i; */
+    return i << 1; // return 2 * i;
 }
-
 
 int Right(int i)
 {
-    return (i << 1) + 1; /* return 2 * i + 1; */
+    return (i << 1) + 1; // return 2 * i + 1;
 }
-
 
 void MinHeapify(struct nodePQ Q[], int i, int heapSize, int positionVertex[])
 {
@@ -77,7 +74,6 @@ void MinHeapify(struct nodePQ Q[], int i, int heapSize, int positionVertex[])
     }
 }
 
-
 int MinPQ_Extract(struct nodePQ Q[], int *heapSize, int positionVertex[])
 {
     int myMin = 0;
@@ -94,7 +90,6 @@ int MinPQ_Extract(struct nodePQ Q[], int *heapSize, int positionVertex[])
     }
     return myMin;
 }
-
 
 void MinPQ_DecreaseKey(struct nodePQ Q[], int i, int key, int positionVertex[])
 {
@@ -121,16 +116,14 @@ void MinPQ_DecreaseKey(struct nodePQ Q[], int i, int key, int positionVertex[])
     }
 }
 
-
 void MinPQ_Insert(struct nodePQ Q[], int key, int vertex, int *heapSize, int positionVertex[])
 {
     *heapSize = *heapSize + 1;
-    Q[*heapSize].distance = myInfinite;
+    Q[*heapSize].distance = myInfinite; 
     Q[*heapSize].vertex = vertex;
     positionVertex[vertex] = *heapSize;
     MinPQ_DecreaseKey(Q, *heapSize, key, positionVertex);
 }
-
 
 struct graph *ReadGraph(int vertices, int edges)
 {
@@ -148,13 +141,11 @@ struct graph *ReadGraph(int vertices, int edges)
     for(idEdge = 1; idEdge <= G->m_edges; idEdge++)
     {
         scanf("%d %d %d", &u, &v, &w);
-/*
-        u++;
-        v++;
-*/
+        
         tempEdge = (struct edge *) malloc(sizeof(struct edge));
         tempEdge->vertex = v;
         tempEdge->weight = w;
+        tempEdge->active = TRUE; //Inicializar como activa
         tempEdge->next = G->Adj[u];
         G->Adj[u] = tempEdge;
 
@@ -163,6 +154,7 @@ struct graph *ReadGraph(int vertices, int edges)
             tempEdge = (struct edge *) malloc(sizeof(struct edge));
             tempEdge->vertex = u;
             tempEdge->weight = w;
+            tempEdge->active = TRUE; //Inicializar como activa
             tempEdge->next = G->Adj[v];
             G->Adj[v] = tempEdge;
         }
@@ -170,36 +162,12 @@ struct graph *ReadGraph(int vertices, int edges)
     return G;
 }
 
-
-void PrintGraph(struct graph *G)
-{
-    int idVertex;
-    struct edge *tempEdge;
-
-    if(G != NULL)
-    {
-        printf("\n Representation for graph's adjacent lists: \n\n");
-        for(idVertex = 1; idVertex <= G->n_vertex; idVertex++)
-        {
-            printf("[%d]: ", idVertex);
-            tempEdge = G->Adj[idVertex];
-            while(tempEdge != NULL)
-            {
-                printf(" -> (%d, %d)", tempEdge->vertex, tempEdge->weight);
-                tempEdge = tempEdge->next;
-            }
-            printf(" -> NULL\n");
-        }
-    }
-    else
-        printf("\n Empty Graph.\n");
-}
-
-
 struct graph *DeleteGraph(struct graph *G)
 {
     int idVertex;
     struct edge *ActualEdge, *NextEdge;
+
+    if (G == NULL) return NULL;
 
     for(idVertex = 1; idVertex <= G->n_vertex; idVertex++)
     {
@@ -212,148 +180,155 @@ struct graph *DeleteGraph(struct graph *G)
         }
     }
     free(G);
-    G = NULL;
-    return G;
+    return NULL;
 }
 
-
-void Dijkstra(struct graph *G, int d[], int pi[], int s)
+void Prim(struct graph *G, int d[], int pi[], int s)
 {
     int u, v, w, heapSize = 0;
     struct nodePQ Q[MAXV + 1];
-    int positionVertex[MAXV + 1];
+    int positionVertex[MAXV + 1], inQueue[MAXV + 1];
     struct edge *tempEdge;
-
+    
+    // Inicializacion de d y pi para cada ejecucion de Prim
     for(u = 1; u <= G->n_vertex; u++)
     {
         pi[u] = NIL;
-
-        if(u == s)
-        {
+        inQueue[u] = TRUE;
+        d[u] = myInfinite;
+    }
+    
+    // Insertar todos los vertices en la cola de prioridad
+    for(u = 1; u <= G->n_vertex; u++) {
+        if (u == s) {
             MinPQ_Insert(Q, 0, s, &heapSize, positionVertex);
             d[s] = 0;
-        }
-        else
-        {
+        } else {
             MinPQ_Insert(Q, myInfinite, u, &heapSize, positionVertex);
-            d[u] = myInfinite;
         }
     }
 
     while(heapSize >= 1)
     {
         u = MinPQ_Extract(Q, &heapSize, positionVertex);
+        inQueue[u] = FALSE;
 
         if(d[u] == myInfinite)
-            break;
+            break; 
 
         tempEdge = G->Adj[u];
         while(tempEdge != NULL)
         {
-            v = tempEdge->vertex;
-            w = tempEdge->weight;
+            //Solo considerar aristas activas
+            if (tempEdge->active == TRUE) { 
+                v = tempEdge->vertex;
+                w = tempEdge->weight;
 
-            if(d[v] > (d[u] + w)) //para dijkstra
-            {
-                d[v] = d[u] + w; //para dijkstra
-                pi[v] = u;
-                MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
+                if((inQueue[v] == TRUE) && (d[v] > w))
+                {
+                    d[v] = w; 
+                    pi[v] = u;
+                    MinPQ_DecreaseKey(Q, positionVertex[v], d[v], positionVertex);
+                }
             }
             tempEdge = tempEdge->next;
         }
     }
 }
 
-void DeleteVertex(struct graph *G, int v) {
-    int u;
+void MarkMSTEdgesInactive(struct graph *G, int d[], int pi[]) {
+    int v_curr, u_parent;
+    struct edge *tempEdge;
 
-    //Eliminar todas las aristas que salen de v
-    struct edge *current = G->Adj[v];
-    struct edge *temp;
-    while (current != NULL) 
-    {
-        temp = current;
-        current = current->next;
-        free(temp);
-    }
-    G->Adj[v] = NULL;
+    for (v_curr = 1; v_curr <= G->n_vertex; v_curr++) {
+    
+        if (pi[v_curr] != NIL && d[v_curr] != myInfinite) {
+            u_parent = pi[v_curr];
+            int edge_weight = d[v_curr];
 
-    //Eliminar todas las aristas que apuntan hacia v por ser bidireccional
-    for (u = 1; u <= G->n_vertex; u++) 
-    {
-        if (u != v) 
-        {
-            current = G->Adj[u];
-            struct edge *prev = NULL;
-
-            while (current != NULL) {
-                if (current->vertex == v) 
-                {
-                    // Eliminar arista que apunta hacia v
-                    if (prev == NULL) 
-                        G->Adj[u] = current->next; //Inicio de la lista
-                    else 
-                        prev->next = current->next; //En medio o al final
-
-                    temp = current;
-                    current = current->next;
-                    free(temp);
-                } 
-                else 
-                {
-                    prev = current; //Se sigue avanzando
-                    current = current->next;
+            // Buscar la arista (u_parent, v_curr) y marcarla
+            tempEdge = G->Adj[u_parent];
+            while (tempEdge != NULL) {
+                if (tempEdge->vertex == v_curr && tempEdge->weight == edge_weight) {
+                    tempEdge->active = FALSE; // Marcar como inactiva
+                    break;
                 }
+                tempEdge = tempEdge->next;
+            }
+
+            // Buscar la arista (v_curr, u_parent) y marcarla
+            tempEdge = G->Adj[v_curr];
+            while (tempEdge != NULL) {
+                if (tempEdge->vertex == u_parent && tempEdge->weight == edge_weight) {
+                    tempEdge->active = FALSE; // Marcar como inactiva
+                    break;
+                }
+                tempEdge = tempEdge->next;
             }
         }
     }
 }
 
-
-void solver(struct graph *Graph, int source, int N, int G)
+void solver(struct graph *G, int source)
 {
-    int d[MAXV + 1], pi[MAXV + 1], found = 0, rutas[MAXV + 1], distancias[MAXV + 1], indexRutas = 1;
-    Dijkstra(Graph, d, pi, source); 
+    int d[MAXV + 1], pi[MAXV + 1], CountTrees = 0;
+    long long VecWeightMST[MAXV + 1], current_mst_weight;
 
-    for (int i = 1; i <= N; i++)
+    while(TRUE) // Bucle principal para encontrar y eliminar MSTs
     {
-        if(d[i] / 2 == d[G])
-        {
-            rutas[indexRutas] = i;
-            distancias[indexRutas] = d[i];
-            indexRutas++;
+        //Ejecutar Prim para encontrar el MST del grafo actual
+        Prim(G, d, pi, source);
+
+        //Calcular el peso del MST encontrado y verificar si todos los vertices fueron alcanzados
+        int vertices_reached_by_prim = 0;
+        int edges_in_current_mst = 0; // Contar las aristas que realmente se unieron al MST
+        current_mst_weight = 0;
+
+        for (int i = 1; i <= G->n_vertex; i++) {
+            if (d[i] != myInfinite) { 
+                vertices_reached_by_prim++;
+            }
+            if (pi[i] != NIL) { 
+                edges_in_current_mst++;
+                current_mst_weight += d[i];
+            }
         }
         
-    }
-    
-    DeleteVertex(Graph, G);
-    Dijkstra(Graph, d, pi, source);
-    
-    d[G] = 0; 
-    
-    for (int i = 1; i <= indexRutas - 1; i++)
-    {
-        if (d[rutas[i]] != distancias[i])
-        {
-            printf("%d ", rutas[i]);  
-             found = 1;
+        // Manejar el caso especial de un grafo con un solo vertice
+        if (G->n_vertex == 1) {
+            if (vertices_reached_by_prim == 1) { 
+                current_mst_weight = 0; 
+                CountTrees++;
+                VecWeightMST[CountTrees] = current_mst_weight;
+            }
+            break;
         }
+
+        if (edges_in_current_mst < (G->n_vertex - 1) || vertices_reached_by_prim < G->n_vertex) {
+            break; // El grafo se ha desconectado
+        }
+        
+        CountTrees++;
+        VecWeightMST[CountTrees] = current_mst_weight;
+        
+        MarkMSTEdgesInactive(G, d, pi);
     }
     
-    if(!found)
-        printf("*");
+    printf("%d\n", CountTrees);
+    for(int i = 1; i <= CountTrees; i++)
+    {
+        printf("%lld\n", VecWeightMST[i]);
+    }
 }
-
 
 int main()
 {
-    int N, M, P, G;
-    struct graph *Graph;
-
-    scanf("%d %d", &N, &M);
-    scanf("%d %d", &P, &G);
-    Graph = ReadGraph(N, M);
-    solver(Graph, P, N, G);
-    Graph = DeleteGraph(Graph);
+    int vertices, edges, source = 1; 
+    struct graph *G;
+    
+    scanf("%d %d", &vertices, &edges);
+    G = ReadGraph(vertices, edges);  
+    solver(G, source);   
+    G = DeleteGraph(G); 
     return 0;
 }
